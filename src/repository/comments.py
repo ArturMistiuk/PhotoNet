@@ -6,30 +6,33 @@ from src.schemas.comment_schemas import CommentModel
 
 async def get_comments(db: Session):
     """
-     Функція get_comments повертає всі коментарі в базі даних.
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Всі коментарі з бази
-     """
+    The function get_comments returns all comments in the database.
+
+    :param db: Session: passes the database session to the function
+    :return: All comments from the database.
+    """
     return db.query(Comment).all()
 
 
 async def get_comment_by_id(comment_id: int, db: Session):
     """
-     Функція get_comment_by_id повертає об’єкт коментаря з бази даних на основі його ідентифікатора.
-     :param comment_id: int: фільтрувати базу даних для певного коментаря
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об’єкт коментаря
-     """
+    The function get_comment_by_id returns a comment object from the database based on its identifier.
+
+    :param comment_id: int: filter the database for a specific comment
+    :param db: Session: passes the database session to the function
+    :return: Comment object
+    """
     return db.query(Comment).filter_by(id=comment_id).first()
 
 
 async def create_comment(body: CommentModel, db: Session):
     """
-     Функція create_comment створює новий коментар у базі даних.
-     :param body: CommentModel: передайте дані для створення нового коментаря
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об’єкт коментаря
-     """
+    The function create_comment creates a new comment in the database.
+
+    :param body: CommentModel: pass the data to create a new comment
+    :param db: Session: passes the database session to the function
+    :return: Comment object
+    """
     comment = Comment(**body.dict())
     db.add(comment)
     db.commit()
@@ -38,17 +41,12 @@ async def create_comment(body: CommentModel, db: Session):
 
 async def update_comment(body: CommentModel, comment_id, db: Session):
     """
-     Функція update_comment оновлює коментар у базі даних.
-         Аргументи:
-             body (CommentModel): об’єкт CommentModel для оновлення.
-             comment_id (int): ідентифікатор об’єкта CommentModel для оновлення.
-             db (сеанс, необов’язково): екземпляр сеансу SQLAlchemy. За замовчуванням немає.
-         Повернення:
-             Необов’язково [Коментар]: словник, що містить інформацію про оновлений коментар, або «Немає», якщо такого коментаря немає.
-     :param body: CommentModel: передати оновлений коментар у функцію
-     :param comment_id: отримати коментар із бази даних
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об'єкт коментаря
+    The function update_comment updates a comment in the database.
+
+    :param body: CommentModel: pass the updated comment to the function
+    :param comment_id: get the comment from the database
+    :param db: Session: passes the database session to the function
+    :return: Comment object
      """
     comment = await get_comment_by_id(comment_id, db)
     if comment:
@@ -59,16 +57,12 @@ async def update_comment(body: CommentModel, comment_id, db: Session):
 
 async def remove_comment(comment_id, db: Session):
     """
-     Функція remove_comment видаляє коментар із бази даних.
-         Аргументи:
-             comment_id (int): ідентифікатор коментаря, який потрібно видалити.
-             db (сеанс): підключення до бази даних.
-         Повернення:
-             Коментар: видалений об’єкт «Коментар».
-     :param comment_id: Знайдіть коментар, який потрібно видалити
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Коментар, який було видалено
-     """
+    The function remove_comment deletes a comment from the database.
+
+    :param comment_id: Find the comment to be deleted.
+    :param db: Session: passes the database session to the function
+    :return: The deleted 'Comment' object.
+    """
     comment = await get_comment_by_id(comment_id, db)
     if comment:
         db.delete(comment)
@@ -78,11 +72,11 @@ async def remove_comment(comment_id, db: Session):
 
 async def get_image_by_id(image_id: int, db: Session):
     """
-     Функція get_image_by_id приймає image_id і сеанс бази даних,
-     і повертає об’єкт Image із цим ідентифікатором. Якщо такого зображення не існує, повертається None.
-     :param image_id: int: Вкажіть ідентифікатор зображення, яке потрібно отримати
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Зображення з указаним ідентифікатором
-     """
+    The function get_image_by_id takes image_id and a database session, and returns an Image object with that identifier. If such an image does not exist, it returns None.
+
+    :param image_id: int: Specify the identifier of the image to retrieve
+    :param db: Session: passes the database session to the function
+    :return: Image or None: Image with the specified identifier or None if not found.
+    """
     image = db.query(Image).filter_by(id=image_id).first()
     return image
