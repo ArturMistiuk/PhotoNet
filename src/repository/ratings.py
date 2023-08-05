@@ -11,15 +11,17 @@ from fastapi import HTTPException
 
 async def get_average_rating(image_id, db: Session):
     """
-     Функція get_average_rating приймає image_id і сеанс бази даних.
-     Потім він запитує таблицю рейтингів для всіх рейтингів, пов’язаних із цим image_id.
-     Якщо оцінок немає, повертається 0 як середня оцінка. Якщо є рейтинги,
-     він підсумовує всі значення зірок (одна зірка = 1 бал, дві зірки = 2 бали тощо)
-     і ділиться на загальну кількість голосів, щоб отримати середній рейтинг.
-     :param image_id: Знайдіть зображення в базі даних
-     :param db: Сеанс: доступ до бази даних
-     :return: Середня оцінка зображення з заданим ідентифікатором
-     """
+The get_average_rating function takes in an image_id and a database session.
+It then queries the Rating table for all ratings associated with that image_id.
+If there are no ratings, it returns 0 as the average rating. If there are ratings,
+it sums up all of the star values (one star = 1 point, two stars = 2 points etc.)
+and divides by the number of total ratings to get an average rating.
+
+:param image_id: Filter the ratings table for all of the ratings associated with a particular image
+:param db: Session: Access the database
+:return: The average rating for a given image
+
+    """
     image_ratings = db.query(Rating).filter(Rating.image_id == image_id).all()
     if len(image_ratings) == 0:
         return 0
@@ -41,22 +43,24 @@ async def get_average_rating(image_id, db: Session):
 
 async def get_rating(rating_id: int, db: Session) -> Rating:
     """
-     Функція get_rating повертає об’єкт рейтингу з бази даних.
-     :param rating_id: int: Вкажіть ідентифікатор рейтингу, який ви хочете отримати
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об’єкт рейтингу, який є моделлю sqlalchemy
-     """
+    The function get_rating returns a rating object from the database.
+
+    :param rating_id: int: Specify the identifier of the rating you want to retrieve
+    :param db: Session: passes the database session to the function
+    :return: Rating object as a SQLAlchemy model
+    """
     return db.query(Rating).filter(Rating.id == rating_id).first()
 
 
 def get_image(db: Session, image_id: int):
     """
-     Функція get_image повертає об’єкт зображення з бази даних.
-         Якщо зображення не знайдено, виникає помилка 404.
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param image_id: int: фільтрувати зображення за ідентифікатором
-     :return: Один об’єкт зображення
-     """
+The get_image function returns an image from the database.
+
+:param db: Session: Pass the database session to the function
+:param image_id: int: Specify the id of the image that is being requested
+:return: An image object
+
+    """
     image = db.query(Image).filter(Image.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
@@ -65,18 +69,19 @@ def get_image(db: Session, image_id: int):
 
 async def create_rating(image_id: int, body: RatingModel, user: User, db: Session) -> Rating:
     """
-     Функція create_rating створює новий рейтинг для зображення.
-         Аргументи:
-             image_id (int): ідентифікатор зображення, яке буде оцінено.
-             тіло (RatingModel): об’єкт RatingModel, що містить інформацію про рейтинг.
-             користувач (User): Користувач, який створює рейтинг.
-             db (сеанс): об’єкт сеансу бази даних, який використовується для запиту та внесення змін до бази даних.
-     :param image_id: int: отримати зображення з бази даних
-     :param body: RatingModel: передати дані з тіла запиту в цю функцію
-     :param user: Користувач: отримати ідентифікатор користувача, який увійшов у систему
-     :param db: Сеанс: доступ до бази даних
-     :return: Об'єкт рейтингу
-     """
+The create_rating function creates a new rating for an image.
+    Args:
+        image_id (int): The id of the image to be rated.
+        body (RatingModel): A RatingModel object containing the rating information.
+        user (User): The user who is creating the rating.
+
+:param image_id: int: Get the image from the database
+:param body: RatingModel: Pass the rating model to the function
+:param user: User: Check if the user is the owner of the image
+:param db: Session: Access the database
+:return: A rating object
+
+    """
     image_in_database = get_image(db, image_id)
     if image_in_database.user_id == user.id:
         return None
@@ -99,12 +104,18 @@ async def create_rating(image_id: int, body: RatingModel, user: User, db: Sessio
 
 async def update_rating(rating_id: int, body: RatingModel, db: Session):
     """
-     Функція update_rating оновлює рейтинг у базі даних.
-     :param rating_id: int: Визначте, який рейтинг оновити
-     :param body: RatingModel: отримати дані з тіла запиту
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об’єкт рейтингу, якщо рейтинг існує в базі даних
-     """
+The update_rating function updates the rating of a given movie.
+    Args:
+        rating_id (int): The id of the movie to update.
+        body (RatingModel): The new values for each star in the RatingModel object.
+
+:param rating_id: int: Find the rating that we want to update
+:param body: RatingModel: Pass the data to be updated
+:param db: Session: Access the database
+:return: The rating object
+
+    """
+
     sum_of_rates = 0
     for el in body:
         if el[1]:
@@ -124,11 +135,16 @@ async def update_rating(rating_id: int, body: RatingModel, db: Session):
 
 async def remove_rating(rating_id: int, db: Session):
     """
-     Функція remove_rating видаляє оцінку з бази даних.
-     :param rating_id: int: Повідомте функції, який рейтинг потрібно видалити
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Об'єкт рейтингу
-     """
+The remove_rating function removes a rating from the database.
+    Args:
+        rating_id (int): The id of the rating to be removed.
+        db (Session): A connection to the database.
+
+:param rating_id: int: Specify the id of the rating to be removed
+:param db: Session: Pass the database session to the function
+:return: A rating object
+
+    """
     rating = db.query(Rating).filter(Rating.id == rating_id).first()
     if rating:
         db.delete(rating)
