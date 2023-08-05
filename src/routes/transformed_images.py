@@ -24,18 +24,20 @@ async def create_new_transformed_image(body: TransformedImageModel,
                                        image_id: int = Path(ge=1),
                                        db: Session = Depends(get_db), ):
     """
-     Функція create_new_transformed_image створює нове трансформоване зображення.
-     Функція приймає такі параметри:
-         тіло (TransformedImageModel): об’єкт TransformedImageModel, що містить інформацію для нового трансформованого зображення.
-         користувач (User): необов’язковий об’єкт User, що містить інформацію про поточного користувача, якщо такий є. За замовчуванням немає.
-             Цей параметр використовується декоратором Depends() FastAPI, щоб визначити, чи було надано з цим запитом дійсний маркер JWT, і якщо так, то який його вміст.
-     :param body: TransformedImageModel: отримати дані з тіла запиту
-     :param user: Користувач: отримати поточного користувача
-     :param image_id: int: отримати ідентифікатор зображення зі шляху
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param : отримати ідентифікатор зображення з url
-     :return: Трансформований об’єкт зображення
-     """
+The create_new_transformed_image function creates a new transformed image.
+    The function takes in the following parameters:
+        body (TransformedImageModel): A TransformedImageModel object containing the information for the new transformed image.
+        user (User): A User object containing information about the current user. This is obtained from auth_service's get_current_user function, which uses JWT to authenticate users and obtain their info from our database.
+        image_id (int): An integer representing an existing Image's ID number in our database that we want to transform into a new TransformedImage using this endpoint call.
+
+:param body: TransformedImageModel: Get the data from the request body
+:param user: User: Get the current user
+:param image_id: int: Get the image id from the path
+:param db: Session: Get the database session
+:param : Get the id of the image that is being transformed
+:return: A new transformed image
+
+    """
     new_transformed_picture = await create_transformed_picture(body, user, image_id, db)
     return new_transformed_picture
 
@@ -46,16 +48,16 @@ async def get_all_transformed_images_for_original_image_by_id(skip: int = 0, lim
                                                               db: Session = Depends(get_db),
                                                               user: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_all_transformed_images_for_original_image_by_id повертає всі трансформовані зображення для даного оригінального зображення.
-         Функція приймає додатковий параметр пропуску та обмеження, а також ідентифікатор вихідного зображення, яке потрібно запитати.
-         Також потрібно передати сеанс бази даних і об’єкт користувача.
-     :param skip: int: Пропустити перші n зображень
-     :param limit: int: обмежити кількість повернутих зображень
-     :param image_id: int: отримати image_id з url
-     :param db: Сеанс: доступ до бази даних
-     :param user: Користувач: Перевірте, чи користувач увійшов у систему
-     :return: Список усіх трансформованих зображень для даного оригінального зображення
-     """
+The get_all_transformed_images_for_original_image_by_id function returns a list of all transformed images for the original image with the given id.
+
+:param skip: int: Specify the number of images to skip
+:param limit: int: Limit the number of images returned
+:param image_id: int: Specify the id of the original image that we want to get all transformed images for
+:param db: Session: Access the database
+:param user: User: Check if the user is logged in
+:return: All the transformed images for a given
+
+    """
     images = await get_all_transformed_images(skip, limit, image_id, db, user)
     return images
 
@@ -66,15 +68,14 @@ async def get_transformed_images_by_image_id(transformed_image_id: int = Path(ge
                                              db: Session = Depends(get_db),
                                              user: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_transformed_images_by_image_id повертає трансформоване зображення за його ідентифікатором.
-         Функція приймає ціле число, що представляє ідентифікатор перетвореного зображення, і два необов’язкові параметри:
-             - db: об’єкт сеансу бази даних, який використовується для запиту інформації до бази даних.
-             - користувач: об'єкт, що містить інформацію про поточного користувача, який робить цей запит.
-     :param transformed_image_id: int: отримати трансформоване зображення за ідентифікатором
-     :param db: Сеанс: підключення до бази даних
-     :param user: Користувач: отримати поточного користувача
-     :return: Трансформоване зображення за його ідентифікатором
-     """
+The get_transformed_images_by_image_id function returns a transformed image by its ID.
+
+:param transformed_image_id: int: Specify the id of the transformed image that we want to get
+:param db: Session: Get the database session
+:param user: User: Check if the user is authenticated, and to get the current user's id
+:return: A transformed image by its id
+
+    """
     transformed_image = await get_transformed_img_by_id(transformed_image_id, db, user)
     return transformed_image
 
@@ -85,14 +86,16 @@ async def get_qrcode_for_transformed_image(transformed_image_id: int = Path(ge=1
                                            db: Session = Depends(get_db),
                                            user: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_qrcode_for_transformed_image повертає qrcode для трансформованого зображення.
-         Функція приймає ціле число, що представляє ідентифікатор перетвореного зображення, і повертає його
-         qrcode перетвореного зображення.
-     :param transformed_image_id: int: отримати ідентифікатор трансформованого зображення зі шляху
-     :param db: Сеанс: отримати сеанс бази даних
-     :param user: Користувач: Перевірте, чи користувач автентифікований
-     :return: Трансформоване зображення з заданим ідентифікатором
-     """
+The get_qrcode_for_transformed_image function returns the qrcode for a given transformed image.
+    The function takes in an integer representing the id of a transformed image and returns that
+    transformed image's qrcode.
+
+:param transformed_image_id: int: Get the transformed image by id
+:param db: Session: Get the database session
+:param user: User: Check if the user is authenticated
+:return: The transformed image with the given id
+
+    """
     transformed_image = await get_qrcode_transformed_image_by_id(transformed_image_id, db, user)
     return transformed_image
 
@@ -103,14 +106,14 @@ async def get_url_for_transformed_image(transformed_image_id: int = Path(ge=1),
                                         db: Session = Depends(get_db),
                                         user: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_url_for_transformed_image повертає URL-адресу трансформованого зображення.
-         Функція приймає ціле число, що представляє ідентифікатор перетвореного зображення, і повертає
-         який змінив URL-адресу зображення.
-     :param transformed_image_id: int: отримати ідентифікатор трансформованого зображення зі шляху
-     :param db: Сеанс: отримати сеанс бази даних
-     :param user: Користувач: Перевірте, чи користувач автентифікований
-     :return: URL-адреса перетвореного зображення
-     """
+The get_url_for_transformed_image function returns the URL for a transformed image.
+
+:param transformed_image_id: int: Get the id of the transformed image
+:param db: Session: Access the database
+:param user: User: Get the current user
+:return: The url for the transformed image
+
+    """
     transformed_image = await get_url_transformed_image_by_id(transformed_image_id, db, user)
     return transformed_image
 
@@ -121,13 +124,13 @@ async def delete_transformed_image(transformed_image_id: int = Path(ge=1),
                                    db: Session = Depends(get_db),
                                    user: User = Depends(auth_service.get_current_user)):
     """
-     Функція delete_transformed_image видаляє трансформоване зображення з бази даних.
-         Функція приймає ціле число, що представляє ідентифікатор трансформованого зображення, яке потрібно видалити,
-         і повертає None.
-     :param transformed_image_id: int: Вкажіть ідентифікатор трансформованого зображення, яке потрібно видалити
-     :param db: Сеанс: отримати сеанс бази даних
-     :param user: Користувач: Перевірте, чи користувач автентифікований
-     :return: Жодного, тому нам потрібно створити нову функцію
-     """
+The delete_transformed_image function deletes a transformed image from the database.
+
+:param transformed_image_id: int: Get the id of the transformed image to be deleted
+:param db: Session: Get the database session
+:param user: User: Check if the user is authenticated
+:return: None
+
+    """
     transformed_image = await delete_transformed_image_by_id(transformed_image_id, db, user)
     return None
