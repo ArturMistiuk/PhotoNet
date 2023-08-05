@@ -7,29 +7,27 @@ from src.schemas.user_schemas import UserModel, UserUpdate, UserBlackList
 
 async def get_user_by_email(email: str, db: Session) -> User | None:
     """
+The get_user_by_email function takes in an email and a database session, then returns the user with that email.
 
-     Функція get_user_by_email приймає електронну пошту та сеанс бази даних,
-     і повертає користувача, пов’язаного з цією електронною поштою. Якщо такого користувача не існує, повертається None.
-     :param email: str: Передайте адресу електронної пошти користувача, яку потрібно отримати
-     :param db: Сеанс: Перейти до сеансу бази даних
-     :return: Об’єкт користувача або жодного
-     :doc-author: Трелент
-     """
+:param email: str: Pass in the email of the user we want to find
+:param db: Session: Pass the database session into the function
+:return: A user if the email is found in the database
 
+    """
     return db.query(User).filter(User.email == email).first()
 
 
 async def create_user(body: UserModel, db: Session) -> User:
     """
+The create_user function creates a new user in the database.
+    If there are no users with admin role, then the first created user will be an admin.
+    Otherwise, all subsequent users will have 'user' role.
 
-     Функція create_user створює нового користувача в базі даних.
-         Якщо немає користувачів із роллю адміністратора, новий користувач буде створено як адміністратор.
-         В іншому випадку він буде створений як звичайний користувач.
-     :param body: UserModel: Створіть новий об’єкт користувача
-     :param db: Сеанс: доступ до бази даних
-     :return: Об’єкт користувача
-     """
+:param body: UserModel: Create a new user
+:param db: Session: Access the database
+:return: A user object
 
+    """
     admin_exists = db.query(User).filter(User.role == 'admin').first()
 
     if admin_exists:
@@ -45,59 +43,62 @@ async def create_user(body: UserModel, db: Session) -> User:
 
 async def update_token(user: User, token: str | None, db: Session) -> None:
     """
+The update_token function updates the refresh token for a user.
+    Args:
+        user (User): The User object to update.
+        token (str | None): The new refresh token to set for the user. If None, then no change is made to the current value of this field in the database.
 
-     Функція update_token оновлює маркер оновлення для користувача.
-     :param user: Користувач: Ідентифікуйте користувача, який оновлюється
-     :param token: str | Немає: передати маркер, який повертається з api
-     :param db: Сеанс: доступ до бази даних
-     :return: Нічого
-     """
+:param user: User: Identify which user the token is being updated for
+:param token: str | None: Pass in the token that is returned from the spotify api
+:param db: Session: Access the database
+:return: None
 
+    """
     user.refresh_token = token
     db.commit()
 
 
 async def confirmed_email(email: str, db: Session) -> None:
     """
+The confirmed_email function takes in an email and a database session,
+and sets the confirmed field of the user with that email to True.
 
-     Функція confirmed_email приймає електронний лист і сеанс бази даних,
-     і встановлює для поля підтвердження користувача з цією електронною поштою значення True.
 
-     :param email: str: Передайте електронну адресу користувача, який потрібно підтвердити
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Нічого
-     """
+:param email: str: Get the email of the user
+:param db: Session: Pass the database session to the function
+:return: None
 
+    """
     user = await get_user_by_email(email, db)
     user.confirmed = True
     db.commit()
 
 
 async def get_user_info(username: str, db: Session):
+    """
+The get_user_info function takes in a username and returns the user's information.
+    Args:
+        username (str): The name of the user to be retrieved from the database.
+
+:param username: str: Pass the username of the user to be retrieved
+:param db: Session: Pass in the database session to the function
+:return: A user object
 
     """
-     Функція get_user_info приймає ім’я користувача та повертає інформацію про користувача.
-         Аргументи:
-             ім'я користувача (str): ім'я користувача, яке буде отримано з бази даних.
-     :param ім'я користувача: str: Вкажіть ім'я користувача
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Словник інформації про користувача
-     """
-
     user = db.query(User).filter(User.username == username).first()
     return user
 
 
 async def update_user_info(body: UserUpdate, username: str, db: Session):
     """
+The update_user_info function updates a user's information in the database.
 
-     Оновіть інформацію про користувача за допомогою наданих оновлених полів на основі імені користувача.
-     :param body: UserUpdate: Оновлені поля для користувача
-     :param ім'я користувача: str: Ім'я користувача користувача
-     :param db: Сеанс: доступ до бази даних
-     :return: Оновлений об'єкт користувача
-     """
+:param body: UserUpdate: Get the data from the request body
+:param username: str: Get the user from the database
+:param db: Session: Pass the database session to the function
+:return: The user object
 
+    """
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -109,9 +110,17 @@ async def update_user_info(body: UserUpdate, username: str, db: Session):
 
 
 async def block(email: str, body: UserBlackList, db: Session):
+    """
+The block function takes in an email and a body containing the banned status of the user.
+It then finds that user by their email, sets their banned status to whatever is passed in,
+and returns that user.
 
-    """Опис"""
+:param email: str: Get the user by email
+:param body: UserBlackList: Get the banned status of a user
+:param db: Session: Pass the database session to the function
+:return: A user object
 
+    """
     user = await get_user_by_email(email, db)
     if user:
         user.banned = body.banned
