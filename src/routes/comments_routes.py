@@ -23,11 +23,17 @@ access_delete = RolesAccess([Role.admin, Role.moderator])
             dependencies=[Depends(access_get)])
 async def get_comments(db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_comments повертає список коментарів із бази даних.
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param _: Користувач: Перевірте, чи користувач автентифікований
-     :return: Список коментарів
-     """
+The get_comments function returns a list of comments.
+    ---
+    get:
+      summary: Get all comments.
+      description: Returns a list of all the comments in the database.  The user must be logged in to access this endpoint.  If not, an error will be returned instead of the comment data.
+
+:param db: Session: Pass the database session to the function
+:param _: User: Ensure that the user is logged in
+:return: A list of comments
+
+    """
     comments = await repository_comments.get_comments(db)
     return comments
 
@@ -36,16 +42,17 @@ async def get_comments(db: Session = Depends(get_db), _: User = Depends(auth_ser
 async def get_comment_by_id(comment_id: int = Path(ge=1), db: Session = Depends(get_db),
                             _: User = Depends(auth_service.get_current_user)):
     """
-     Функція get_comment_by_id повертає коментар за його ідентифікатором.
-         Аргументи:
-             comment_id (int): ідентифікатор коментаря, який буде повернуто.
-             db (сеанс, необов’язково): об’єкт сеансу бази даних для запиту до бази даних. За замовчуванням Depends(get_db).
-             _ (Користувач, необов’язково): автентифікований об’єкт користувача для перевірки, чи має користувач доступ до цієї кінцевої точки. За замовчуванням залежить від (auth_service.get_current_user).
-     :param comment_id: int: отримати ідентифікатор коментаря з url
-     :param db: Сеанс: передайте сеанс бази даних на рівень сховища
-     :param _: Користувач: отримати поточного користувача
-     :return: Об’єкт коментаря
-     """
+The get_comment_by_id function returns a comment by its id.
+    The function takes in the following parameters:
+        - comment_id (int): The id of the comment to be returned.
+        - db (Session): A database session object used for querying and updating data in the database.
+
+:param comment_id: int: Get the comment id from the path,
+:param db: Session: Get the database session
+:param _: User: Ensure that the user is authenticated
+:return: The comment with the given id
+
+    """
     comment = await repository_comments.get_comment_by_id(comment_id, db)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")
@@ -57,13 +64,17 @@ async def get_comment_by_id(comment_id: int = Path(ge=1), db: Session = Depends(
 async def create_comment(body: CommentModel, db: Session = Depends(get_db),
                          current_user: User = Depends(auth_service.get_current_user)):
     """
-     Функція create_comment створює новий коментар у базі даних.
-         Функція приймає об’єкт CommentModel як вхідні дані та повертає щойно створений коментар.
-     :param body: CommentModel: Створіть об’єкт коментаря з тіла запиту
-     :param db: Сеанс: передайте сеанс бази даних на рівень сховища
-     :param current_user: Користувач: отримати user_id поточного користувача
-     :return: Об'єкт коментаря
-     """
+The create_comment function creates a new comment in the database.
+    It takes in a CommentModel object, which is validated by pydantic.
+    The function then checks if the image_id exists in the database, and if not raises an error.
+    If it does exist, it sets user_id to be equal to current_user's id (the logged-in user), and calls create_comment from repository/comments.py.
+
+:param body: CommentModel: Validate the request body
+:param db: Session: Get the database session
+:param current_user: User: Get the current user's id
+:return: A comment object
+
+    """
     try:
         image = db.query(Image).filter_by(id=body.image_id).first()
     except:
@@ -77,13 +88,18 @@ async def create_comment(body: CommentModel, db: Session = Depends(get_db),
 async def update_comment(body: CommentModel, comment_id: int = Path(ge=1), db: Session = Depends(get_db),
                          current_user: User = Depends(auth_service.get_current_user)):
     """
-     Функція update_comment оновлює коментар у базі даних.
-     :param body: CommentModel: отримати тіло коментаря із запиту
-     :param comment_id: int: отримати ідентифікатор коментаря з url
-     :param db: Сеанс: отримати сеанс бази даних
-     :param current_user: Користувач: отримати користувача, який зараз увійшов у систему
-     :return: Оновлений коментар
-     """
+The update_comment function updates a comment in the database.
+    The function takes an id of the comment to update, and a CommentModel object containing new data for that comment.
+    If no such comment exists, it returns 404 Not Found error.
+
+
+:param body: CommentModel: Get the body of the request
+:param comment_id: int: Get the comment id from the url
+:param db: Session: Access the database
+:param current_user: User: Get the current user from the database
+:return: A commentmodel object
+
+    """
     if current_user.id != body.user_id and current_user.role == 'user':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can't change not your comment")
     comment = await repository_comments.update_comment(body, comment_id, db)
@@ -96,16 +112,16 @@ async def update_comment(body: CommentModel, comment_id: int = Path(ge=1), db: S
 async def remove_comment(comment_id: int = Path(ge=1), db: Session = Depends(get_db),
                          _: User = Depends(auth_service.get_current_user)):
     """
-     Функція remove_comment видаляє коментар із бази даних.
-         Аргументи:
-             comment_id (int): ідентифікатор коментаря, який потрібно видалити.
-             db (сеанс, необов’язково): об’єкт сеансу бази даних, який використовується для запиту та зміни даних у базі даних. За замовчуванням Depends(get_db).
-             _ (Користувач, необов’язково): об’єкт, що представляє автентифікованого користувача, який робить цей запит. За замовчуванням залежить від (auth_service.get_current_user).
-     :param comment_id: int: Отримати ідентифікатор коментаря зі шляху
-     :param db: Сеанс: передайте з’єднання з базою даних функції
-     :param _: Користувач: отримати поточного користувача з auth_service
-     :return: Об’єкт коментаря
-     """
+The remove_comment function removes a comment from the database.
+    The function takes in an integer representing the id of the comment to be removed,
+    and returns a dictionary containing information about that comment.
+
+:param comment_id: int: Get the comment id from the url
+:param db: Session: Get the database session
+:param _: User: Get the current user
+:return: The comment that was removed
+
+    """
     comment = await repository_comments.remove_comment(comment_id, db)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")
