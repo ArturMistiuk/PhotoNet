@@ -9,13 +9,17 @@ from src.database.db import get_db
 
 def calc_average_rating(image_id, db: Session):
     """
-     Функція calc_average_rating обчислює середню оцінку для даного зображення.
-         Аргументи:
-             image_id (int): ідентифікатор зображення, для якого потрібно обчислити середню оцінку.
-     :param image_id: Ідентифікувати зображення в базі даних
-     :param db: Сеанс: передайте сеанс бази даних, щоб ми могли використовувати його для запиту до бази даних
-     :return: Середня оцінка зображення
-     """
+The calc_average_rating function takes in an image_id and a database session.
+It then queries the Rating table for all ratings associated with that image_id.
+If there are no ratings, it returns 0 as the average rating. If there are ratings,
+it sums up all of the star values (one star = 1 point, two stars = 2 points etc.)
+and divides by the number of total ratings to get an average rating.
+
+:param image_id: Find the image in the database
+:param db: Session: Pass the database session to the function
+:return: The average rating for a given image
+
+    """
     image_ratings = db.query(Rating).filter(Rating.image_id == image_id).all()
     if len(image_ratings) == 0:
         return 0
@@ -37,19 +41,22 @@ def calc_average_rating(image_id, db: Session):
 
 async def get_img_by_user_id(user_id, skip, limit, filter_type, db, user):
     """
-     Функція get_img_by_user_id використовується для отримання всіх зображень для конкретного користувача.
-         Він приймає наступні параметри:
-             - user_id: ідентифікатор користувача, зображення якого запитуються.
-             - пропустити: кількість записів, які потрібно пропустити перед поверненням результатів (для розбиття на сторінки). Значення за замовчуванням 0.
-             - обмеження: максимальна кількість записів для повернення (для розбиття на сторінки). Значення за замовчуванням 10.
-     :param user_id: фільтрувати зображення за user_id
-     :param skip: Пропустити перші n зображень
-     :param limit: обмежує кількість зображень, що повертаються
-     :param filter_type: Визначте, чи потрібно повертати зображення в порядку зростання чи спадання
-     :param db: Зробіть запит до бази даних
-     :param користувач: перевірте, чи є користувач адміністратором чи модератором
-     :return: Список зображень для конкретного користувача
-     """
+The get_img_by_user_id function is used to get all images for a specific user.
+    The function takes in the following parameters:
+        - user_id: the id of the user whose images are being retrieved. This parameter is required and must be an integer.
+        - skip: how many records to skip before returning results (defaults to 0). This parameter is optional and must be an integer.
+        - limit: how many records should be returned (defaults to 10). This parameter is optional and must be an integer.
+        - filter_type: whether or not you want your results sorted by date ascending or descending
+
+:param user_id: Filter the images by user_id
+:param skip: Skip the first n images
+:param limit: Limit the number of images returned
+:param filter_type: Determine whether the images are sorted in ascending or descending order
+:param db: Access the database
+:param user: Get the role of the user that is logged in
+:return: A list of images for the user
+
+    """
     if user.role in (Role.admin, Role.moderator):
         if filter_type == "d":
             images = db.query(Image).filter(Image.user_id == user_id).order_by(desc(Image.created_at)).offset(
@@ -69,16 +76,19 @@ async def get_img_by_user_id(user_id, skip, limit, filter_type, db, user):
 
 async def find_image_by_tag(skip: int, limit: int, search: str, filter_type: str, db: Session, user: User):
     """
-     Функція find_image_by_tag використовує skip, limit, search string і filter_type.
-     Потім він запитує в базі даних зображення, які відповідають рядку пошуку, і повертає їх користувачеві.
-     :param skip: int: Пропустити кілька зображень
-     :param limit: int: обмежити кількість зображень, що повертаються
-     :param search: str: Пошук за назвою тегу
-     :param filter_type: str: Визначити сортування зображень за датою в порядку зростання чи спадання
-     :param db: Сеанс: доступ до бази даних
-     :param user: Користувач: отримати user_id поточного зареєстрованого користувача
-     :return: Список зображень
-     """
+The find_image_by_tag function takes in a skip, limit, search string and filter_type.
+It then queries the database for images that match the search string (either in their description or tags)
+and returns them to the user. The skip and limit parameters are used to paginate through results.
+
+:param skip: int: Specify the number of images to skip
+:param limit: int: Limit the number of images returned
+:param search: str: Search for images by tag name or description
+:param filter_type: str: Determine how the images are sorted
+:param db: Session: Access the database
+:param user: User: Get the user's id
+:return: A list of images that match the search query
+
+    """
     search = search.lower().strip()
     images = []
 
