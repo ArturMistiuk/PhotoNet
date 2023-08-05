@@ -25,20 +25,20 @@ conf = ConnectionConfig(
 
 async def send_email(email: EmailStr, username: str, host: str):
     """
-     Функція send_email надсилає користувачеві електронний лист із посиланням для підтвердження електронної адреси.
-     Функція приймає три параметри:
-     -email: EmailStr, адреса електронної пошти користувача, яку він ввів під час реєстрації облікового запису.
-     -username: str, ім’я користувача, який намагається зареєструвати обліковий запис. Це буде використано в
-     поєднання з хостом (див. нижче) і token_verification (див. нижче) як частину URL-адреси, яка буде надіслана
-     електронною поштою, щоб підтвердити їх особу та надати їм доступ до нашої системи.
-     :param email: EmailStr: Вкажіть адресу електронної пошти одержувача
-     :param ім'я користувача: str: Передайте ім'я користувача в шаблон
-     :param host: str: Створіть посилання на інтерфейс
-     :return: Об'єкт співпрограми
-     """
+The send_email function sends an email to the user with a link to confirm their email address.
+    The function takes in three parameters:
+        -email: EmailStr, the user's email address.
+        -username: str, the username of the user who is registering for an account.  This will be used in a greeting message within the body of the email sent to them.
+        -host: str, this is where we are hosting our application (i.e., localhost).  This will be used as part of a URL that users can click on within their emails.
+
+:param email: EmailStr: Specify the email address of the recipient
+:param username: str: Pass the username of the user to be registered
+:param host: str: Pass the hostname of the server to the email template
+:return: A coroutine object
+
+    """
     try:
         token_verification = auth_service.create_email_token({"sub": email})
-        print(token_verification)
         message = MessageSchema(
             subject="Confirm your email",
             recipients=[email],
