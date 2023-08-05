@@ -23,13 +23,15 @@ access_delete = RolesAccess([Role.admin, Role.moderator])
 @router.get("/", response_model=List[TagResponse], dependencies=[Depends(access_get)])
 async def read_tags(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція read_tags повертає список тегів.
-     :param skip: int: Пропустити перші n тегів
-     :param limit: int: обмежити кількість повернутих тегів
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param _: Користувач: Скажіть fastapi, що користувач потрібен, але він не використовуватиметься у функції
-     :return: Список тегів
-     """
+The read_tags function returns a list of tags.
+
+:param skip: int: Skip the first n tags, where n is the value of skip
+:param limit: int: Determine the number of tags to return
+:param db: Session: Pass the database session to the repository
+:param _: User: Make sure that the user is authenticated before they can access this route
+:return: A list of tag objects
+
+    """
     tags = await repository_tags.get_tags(skip, limit, db)
     return tags
 
@@ -37,12 +39,16 @@ async def read_tags(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 @router.get("/{tag_id}", response_model=TagResponse, dependencies=[Depends(access_get)])
 async def read_tag(tag_id: int, db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція read_tag повертає один тег за його ідентифікатором.
-     :param tag_id: int: Вкажіть ідентифікатор тегу, який потрібно видалити
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param _: Користувач: перевірте, чи користувач автентифікований і має доступ до кінцевої точки
-     :return: Об’єкт тегу
-     """
+The read_tag function will return a single tag from the database.
+    The function takes in an integer, which is the id of the tag to be returned.
+    If no such tag exists, then a 404 error is raised.
+
+:param tag_id: int: Specify the id of the tag to be deleted
+:param db: Session: Access the database
+:param _: User: Check if the user is logged in
+:return: A tag object
+
+    """
     tag = await repository_tags.get_tag(tag_id, db)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found")
@@ -52,13 +58,16 @@ async def read_tag(tag_id: int, db: Session = Depends(get_db), _: User = Depends
 @router.post("/", response_model=TagResponse, dependencies=[Depends(access_create)])
 async def create_tag(body: TagModel, db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція create_tag створює новий тег у базі даних.
-         Функція приймає об’єкт TagModel як вхідні дані та повертає створений тег.
-     :param body: TagModel: отримати дані з тіла запиту
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param _: Користувач: отримати поточного користувача
-     :return: Об’єкт моделі тегів
-     """
+The create_tag function creates a new tag in the database.
+    It takes a TagModel object as input and returns the created tag.
+
+
+:param body: TagModel: Get the body of the request and validate it
+:param db: Session: Get the database session
+:param _: User: Check if the user is authenticated
+:return: A tagmodel object
+
+    """
     check_tag = await repository_tags.get_tag_by_name(body.name.lower(), db)
     if check_tag:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Such tag already exist')
@@ -71,13 +80,17 @@ async def create_tag(body: TagModel, db: Session = Depends(get_db), _: User = De
 @router.put("/{tag_id}", response_model=TagResponse, dependencies=[Depends(access_update)])
 async def update_tag(body: TagModel, tag_id: int, db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція update_tag оновлює тег у базі даних.
-     :param body: TagModel: передає дані з тіла запиту до функції
-     :param tag_id: int: Визначте тег, який потрібно видалити
-     :param db: Сеанс: передайте сеанс бази даних на рівень сховища
-     :param _: Користувач: отримати поточного користувача з auth_service
-     :return: Об’єкт моделі тегів
-     """
+The update_tag function updates a tag in the database.
+    The function takes an id of the tag to update, and a body containing the new values for that tag.
+    It returns an updated version of that same TagModel object.
+
+:param body: TagModel: Get the data from the request body
+:param tag_id: int: Get the tag id from the url
+:param db: Session: Get the database session
+:param _: User: Check if the user is logged in
+:return: A tag object
+
+    """
     tag = await repository_tags.update_tag(tag_id, body, db)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -88,16 +101,16 @@ async def update_tag(body: TagModel, tag_id: int, db: Session = Depends(get_db),
 @router.delete("/{tag_id}", response_model=TagResponse, dependencies=[Depends(access_delete)])
 async def remove_tag(tag_id: int, db: Session = Depends(get_db), _: User = Depends(auth_service.get_current_user)):
     """
-     Функція remove_tag видаляє тег із бази даних.
-         Аргументи:
-             tag_id (int): ідентифікатор тегу, який потрібно видалити.
-             db (сеанс, необов’язково): об’єкт сеансу бази даних для взаємодії з базою даних. За замовчуванням Depends(get_db).
-             _ (Користувач, необов’язково): автентифікований об’єкт користувача для перевірки дозволів і права власності на теги. За замовчуванням залежить від (auth_service.get_current_user).
-     :param tag_id: int: Вкажіть ідентифікатор тегу, який потрібно видалити
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param _: Користувач: отримати поточного користувача
-     :return: Видалений тег
-     """
+The remove_tag function removes a tag from the database.
+    It takes in an integer representing the id of the tag to be removed, and returns a dictionary containing information about that tag.
+
+
+:param tag_id: int: Specify the id of the tag to be deleted
+:param db: Session: Pass the database session to the function
+:param _: User: Check if the user is authenticated
+:return: A tag object
+
+    """
     tag = await repository_tags.remove_tag(tag_id, db)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
