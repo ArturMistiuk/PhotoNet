@@ -24,15 +24,18 @@ access_delete = RolesAccess([Role.admin, Role.moderator])
 async def common_image_rating(image_id, _: User = Depends(auth_service.get_current_user),
                               db: Session = Depends(get_db)):
     """
-     Функція common_image_rating повертає середню оцінку зображення.
-         Аргументи:
-             image_id (int): ідентифікатор зображення, яке буде оцінено.
-             _ (Користувач): користувач, який робить запит. Це ін’єкція залежності, яка використовується лише для автентифікації. Її можна ігнорувати під час виклику цієї функції поза кодовою базою FastAPI, оскільки вона автоматично впроваджуватиметься самим FastAPI під час виклику з маршруту, який вимагає автентифікації.
-     :param image_id: отримати зображення з бази даних
-     :param _: Користувач: отримати поточного користувача з auth_service
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Середня оцінка зображення
-     """
+The common_image_rating function returns the average rating of an image.
+    ---
+    get:
+      summary: Get the average rating of an image.
+      description: Returns a JSON object containing the average rating for a given image ID.  The user must be logged in to access this endpoint, and must have rated that particular image before they can view its common_image_rating value.
+
+:param image_id: Get the image from the database
+:param _: User: Get the current user from the auth_service
+:param db: Session: Access the database
+:return: The average rating of the image with id = image_id
+
+    """
     common_rating = await repository_ratings.get_average_rating(image_id, db)
     return common_rating
 
@@ -40,19 +43,15 @@ async def common_image_rating(image_id, _: User = Depends(auth_service.get_curre
 @router.get("/{rating_id}", response_model=RatingResponse, dependencies=[Depends(access_get)])
 async def read_rating(rating_id: int, _: User = Depends(auth_service.get_current_user), db: Session = Depends(get_db)):
     """
-     Функція read_rating повертає рейтинг за його ідентифікатором.
-         отримати:
-           резюме: Отримайте рейтинг за ID.
-           Опис: повертає деталі індивідуального рейтингу, включаючи користувача, який його створив, і його ім’я користувача.
-           теги: [рейтинги]
-           параметри:
-               in: шлях
-               name: id_rating # Унікальний ідентифікатор для цього конкретного рейтингу (наприклад, 1) передається як частина URL-шляху (наприклад, /ratings/{id_rating}). Це називається &quot;зв'язування шляху&quot;. Перегляньте https://fastapi
-     :param rating_id: int: Визначте рейтинг, який потрібно видалити
-     :param _: Користувач: дозволити auth_service вставляти об’єкт користувача у функцію
-     :param db: Сеанс: доступ до бази даних
-     :return: Об'єкт рейтингу
-     """
+The read_rating function is used to read a single rating from the database.
+It takes in an integer representing the ID of the rating, and returns a Rating object.
+
+:param rating_id: int: Specify the rating that is being updated
+:param _: User: Tell fastapi that the user is not needed for this function
+:param db: Session: Pass the database session to the repository
+:return: A rating object
+
+    """
     rating = await repository_ratings.get_rating(rating_id, db)
     if rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
@@ -63,13 +62,19 @@ async def read_rating(rating_id: int, _: User = Depends(auth_service.get_current
 async def create_rate(image_id, body: RatingModel, current_user: User = Depends(auth_service.get_current_user),
                       db: Session = Depends(get_db)):
     """
-     Функція create_tag створює новий тег у базі даних.
-     :param image_id: отримати зображення з бази даних
-     :param body: RatingModel: отримати дані з тіла запиту
-     :param current_user: Користувач: отримати користувача, який зараз увійшов у систему
-     :param db: Сеанс: підключення до бази даних
-     :return: Об’єкт тегу
-     """
+The create_rate function creates a new rating for an image.
+    The function takes the following parameters:
+        - image_id: The id of the image to be rated.
+        - body: A RatingModel object containing all information about the rating, including user_id and value.
+                This is passed in as JSON data in a POST request to /ratings/{image_id}.
+
+:param image_id: Get the image from the database
+:param body: RatingModel: Get the rating value from the request body
+:param current_user: User: Get the current user from the database
+:param db: Session: Get the database session
+:return: A ratingmodel object
+
+    """
     rating = await repository_ratings.create_rating(image_id, body, current_user, db)
     if rating is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -81,13 +86,18 @@ async def create_rate(image_id, body: RatingModel, current_user: User = Depends(
 async def update_rating(body: RatingModel, rating_id: int, db: Session = Depends(get_db),
                         _: User = Depends(auth_service.get_current_user)):
     """
-     Функція update_rating оновлює рейтинг у базі даних.
-     :param body: RatingModel: отримати тіло запиту
-     :param rating_id: int: Визначте рейтинг, який потрібно оновити
-     :param db: Сеанс: передайте з’єднання з базою даних функції
-     :param _: Користувач: отримати поточного користувача з auth_service
-     :return: Об'єкт рейтингу
-     """
+The update_rating function updates a rating in the database.
+    The function takes an id of the rating to update, and a body containing all fields that need updating.
+    If no user is logged in, or if the user does not have permission to update ratings,
+    then an HTTPException will be raised with status code 401 (Unauthorized).
+
+:param body: RatingModel: Get the request body from the client
+:param rating_id: int: Get the rating id from the url
+:param db: Session: Get the database session from the dependency injection container
+:param _: User: Check if the user is logged in
+:return: A ratingmodel object
+
+    """
     rating = await repository_ratings.update_rating(rating_id, body, db)
     if rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -99,12 +109,16 @@ async def update_rating(body: RatingModel, rating_id: int, db: Session = Depends
 async def remove_rating(rating_id: int, db: Session = Depends(get_db),
                         _: User = Depends(auth_service.get_current_user)):
     """
-     Функція remove_rating видаляє оцінку з бази даних.
-     :param rating_id: int: Знайдіть рейтинг у базі даних
-     :param db: Сеанс: отримати сеанс бази даних
-     :param _: Користувач: переконайтеся, що користувач увійшов у систему
-     :return: Видалений рейтинг
-     """
+The remove_rating function removes a rating from the database.
+    It takes in an integer representing the id of the rating to be removed, and returns a dictionary containing information about that rating.
+    If no such rating exists, it raises an HTTPException with status code 404.
+
+:param rating_id: int: Specify the id of the rating to be deleted
+:param db: Session: Pass the database session to the repository
+:param _: User: Check if the user is logged in
+:return: A rating object
+
+    """
     rating = await repository_ratings.remove_rating(rating_id, db)
     if rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
