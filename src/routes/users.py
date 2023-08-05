@@ -21,22 +21,25 @@ router = APIRouter(prefix="/users", tags=["Users profile"])
 @router.get("/me/", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(auth_service.get_current_user)):
     """
-     Функція read_users_me — це запит GET, який повертає інформацію про поточного користувача.
-         Він вимагає автентифікації та використовує auth_service для отримання поточного користувача.
-     :param current_user: Користувач: передати об’єкт поточного користувача у функцію
-     :return: Поточний об'єкт користувача, отриманий від auth_service
-     """
+The read_users_me function returns the current user's information.
+
+:param current_user: User: Get the current user from the auth_service
+:return: The current user
+
+"""
     return current_user
 
 
 @router.get("/{username}/", response_model=UserResponse)
 async def profile_info(username: str, db: Session = Depends(get_db)):
     """
-     Отримати інформацію про користувача на основі його імені користувача.
-     :param ім'я користувача: str: Ім'я користувача користувача
-     :param db: Сеанс: доступ до бази даних
-     :return: Об'єкт користувача
-     """
+The profile_info function returns the user's profile information.
+
+:param username: str: Specify the username of the user whose profile is being requested
+:param db: Session: Pass the database session to the function
+:return: A user object
+
+    """
     user_info = await get_user_info(username, db)
     if user_info is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -47,18 +50,18 @@ async def profile_info(username: str, db: Session = Depends(get_db)):
 async def profile_update(username: str, body: UserUpdate, db: Session = Depends(get_db),
                          current_user: User = Depends(auth_service.get_current_user)):
     """
-     Функція profile_update оновлює інформацію профілю користувача.
-         Функція приймає ім’я користувача, тіло (що є об’єктом UserUpdate), db (сеанс бази даних) і current_user.
-         Якщо ім’я користувача current_user не збігається з даним іменем користувача, а їхня роль — «користувач», тоді HTTPException
-             з кодом статусу 403 Заборонено буде виведено разом із повідомленням про помилку про те, що вони можуть лише оновлювати
-             власний профіль. В іншому випадку, updated_user буде налаштовано на очікування update_user_info(body, username, db). нарешті,
-             оновлений користувач буде повернено.
-     :param ім'я користувача: str: отримати ім'я користувача для оновлення
-     :param body: UserUpdate: отримати дані з тіла запиту
-     :param db: Сеанс: отримати сеанс бази даних
-     :param current_user: Користувач: отримати поточного користувача,
-     :return: Оновлений об’єкт користувача
-     """
+The profile_update function updates the user's profile information.
+    The function takes in a username, body (which contains the updated info), db, and current_user.
+    If the current_user is not an admin or does not match with the username provided, then they are forbidden from updating this profile.
+    Otherwise, update_user_info is called to update their information.
+
+:param username: str: Get the username of the user to be deleted
+:param body: UserUpdate: Get the data from the user
+:param db: Session: Access the database
+:param current_user: User: Get the current user's information
+:return: The updated user object
+
+    """
     if current_user.username != username and current_user.role == 'user':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only update your own profile")
 
@@ -70,7 +73,18 @@ async def profile_update(username: str, body: UserUpdate, db: Session = Depends(
 @router.patch("/{email}/blacklist", response_model=UserBlacklistResponse, dependencies=[Depends(access_block)])
 async def block_user(email: str, body: UserBlackList, db: Session = Depends(get_db),
                         _: User = Depends(auth_service.get_current_user)):
-    """Опис"""
+    """
+The block_user function is used to block a user from the system.
+    The function takes in an email and a body of type UserBlackList, which contains the reason for blocking.
+    It then calls the block function with these parameters, and returns either None or a blocked_user object.
+
+:param email: str: Get the email of the user to be blocked
+:param body: UserBlackList: Get the user_id and block_user_id from the request body
+:param db: Session: Get the database session
+:param _: User: Get the current user
+:return: The blocked user object
+
+    """
     blocked_user = await block(email, body, db)
     if blocked_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
