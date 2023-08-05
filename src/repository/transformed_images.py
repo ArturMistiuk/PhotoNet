@@ -14,17 +14,19 @@ async def create_transformed_picture(body: TransformedImageModel,
                                      image_id: int,
                                      db: Session = Depends(get_db)):
     """
-     Функція create_transformed_picture приймає об’єкт TransformedImageModel, поточного користувача та ідентифікатор зображення.
-     Потім він запитує в базі даних зображення з таким ідентифікатором і перевіряє, чи воно належить поточному користувачеві. Якщо ні, виникає помилка 404.
-     Якщо так, він створює перетворення з об’єкта TransformedImageModel за допомогою функції create_transformations (див. нижче). Потім він використовує
-     Cloudinary API, щоб створити нову URL-адресу для цього перетвореного зображення на основі цих трансформацій і завантажити цю нову URL-адресу як QR-код
-     до Cloudinary за допомогою функції generate_and_upload_qr_code (див. нижче). Нарешті
-     :param body: TransformedImageModel: отримати дані з тіла запиту
-     :param current_user: отримати користувача, який зараз увійшов у систему
-     :param image_id: int: отримати оригінальне зображення з бази даних
-     :param db: Сеанс: отримати доступ до бази даних
-     :return: Об’єкт transformedimage, який потім серіалізується у відповідь JSON
-     """
+The create_transformed_picture function takes in a TransformedImageModel object, the current user, and an image id.
+It then queries the database for an Image with that id and checks if it belongs to the current user. If not, it raises a 404 error.
+If so, it creates transformations from the TransformedImageModel object using create_transformations function (see above).
+Then we use Cloudinary's build_url method to generate a new url for our transformed image based on those transformations.
+We also generate and upload a QR code of this new url using our generate_and_upload_qr_code function (
+
+:param body: TransformedImageModel: Get the transformation parameters from the request body
+:param current_user: Get the user id from the token
+:param image_id: int: Specify the image that will be transformed
+:param db: Session: Access the database
+:return: A transformedimage object
+
+"""
     original_image = db.query(Image).filter(and_(Image.id == image_id, Image.user_id == current_user.id)).first()
     if not original_image:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Original image not found")
@@ -33,7 +35,6 @@ async def create_transformed_picture(body: TransformedImageModel,
 
     public_id = original_image.public_name
     file_name = public_id + "_" + str(current_user.username)
-    # new_url = cloudinary.CloudinaryImage(f'PhotoShare/{file_name}').build_url(transformation=transformations)
     new_url = cloudinary.CloudinaryImage(f'PhotoNet/{file_name}').build_url(transformation=transformations)
     qrcode_url = generate_and_upload_qr_code(new_url)
     print(qrcode_url)
@@ -48,16 +49,18 @@ async def create_transformed_picture(body: TransformedImageModel,
 
 async def get_all_transformed_images(skip: int, limit: int, image_id: int, db: Session, current_user):
     """
-     Функція get_all_transformed_images повертає список усіх трансформованих зображень для даного зображення.
-         Функція приймає ціле число skip, limit і image_id як параметри. Він також приймає сеанс бази даних
-         і об’єкт поточного користувача з контексту запиту.
-     :param skip: int: Пропустити кілька зображень у базі даних
-     :param limit: int: обмежує кількість повернутих трансформованих зображень
-     :param image_id: int: фільтрувати перетворені зображення за image_id
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param current_user: Отримати ідентифікатор поточного користувача
-     :return: Список усіх трансформованих зображень для заданого зображення
-     """
+The get_all_transformed_images function returns a list of all transformed images for the given image_id.
+    The function takes in an integer skip, limit, and image_id as parameters.
+    It also takes in a database session object and current user object from the fastapi security module.
+
+:param skip: int: Skip a certain number of images in the database
+:param limit: int: Limit the number of images returned
+:param image_id: int: Filter the transformed images by image_id
+:param db: Session: Access the database
+:param current_user: Check if the user is owner of the image
+:return: A list of transformed images for a given image
+
+    """
     transformed_list = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.image_id == image_id, Image.user_id == current_user.id)). \
         offset(skip).limit(limit).all()
@@ -69,13 +72,16 @@ async def get_all_transformed_images(skip: int, limit: int, image_id: int, db: S
 
 async def get_transformed_img_by_id(transformed_id: int, db: Session, current_user):
     """
-     Функція get_transformed_img_by_id приймає transformed_id і об’єкт db Session,
-     і повертає TransformedImage із цим ідентифікатором. Якщо таке зображення не існує, воно викликає HTTPException.
-     :param transformed_id: int: отримати трансформоване зображення за ідентифікатором
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param current_user: Перевірте, чи має користувач доступ до цього зображення
-     :return: Трансформоване зображення за його ідентифікатором
-     """
+The get_transformed_img_by_id function is used to retrieve a transformed image from the database.
+    It takes in an integer representing the id of the transformed image, and returns that transformed
+    image if it exists in the database.
+
+:param transformed_id: int: Get the transformed image by id
+:param db: Session: Pass the database session to the function
+:param current_user: Get the user_id of the current user
+:return: A transformed image object
+
+    """
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
@@ -86,15 +92,17 @@ async def get_transformed_img_by_id(transformed_id: int, db: Session, current_us
 
 async def delete_transformed_image_by_id(transformed_id: int, db: Session, user):
     """
-     Функція delete_transformed_image_by_id видаляє трансформоване зображення з бази даних.
-         Він приймає ціле число, що представляє ідентифікатор трансформованого зображення, яке потрібно видалити, і об’єкт Session для
-         взаємодія з нашою базою даних. Функція повертає об’єкт TransformedImage, що представляє видалений
-         трансформований образ.
-     :param transformed_id: int: Ідентифікуйте трансформоване зображення, яке потрібно видалити
-     :param db: Сеанс: доступ до бази даних
-     :param user: Перевірте, чи користувач має право видаляти зображення
-     :return: Видалене трансформоване зображення
-     """
+The delete_transformed_image_by_id function deletes a transformed image from the database.
+    It takes in an integer representing the id of the transformed image to be deleted,
+    and a Session object for interacting with the database. The function returns
+    an HTTPException if it fails to delete or find a transformed image.
+
+:param transformed_id: int: Specify the id of the transformed image to be deleted
+:param db: Session: Access the database
+:param user: Check the role of the user
+:return: The deleted transformed image
+
+    """
     if user.role == Role.admin:
         transformed_image = db.query(TransformedImage).join(Image). \
             filter(TransformedImage.id == transformed_id).first()
@@ -109,13 +117,15 @@ async def delete_transformed_image_by_id(transformed_id: int, db: Session, user)
 
 async def get_qrcode_transformed_image_by_id(transformed_id: int, db: Session, current_user):
     """
-     Функція get_qrcode_transformed_image_by_id приймає transformed_id і db,
-     і повертає перетворене зображення з цим ідентифікатором. Якщо таке зображення не існує, воно викликає HTTPException.
-     :param transformed_id: int: отримати трансформоване зображення за ідентифікатором
-     :param db: Сеанс: передає сеанс бази даних функції
-     :param current_user: Перевірте, чи користувач увійшов у систему
-     :return: Трансформоване зображення за id
-     """
+The get_qrcode_transformed_image_by_id function returns the transformed image with the given id.
+    The function takes in a transformed_id and a db Session object, and returns an Image object.
+
+:param transformed_id: int: Get the transformed image by id
+:param db: Session: Access the database
+:param current_user: Check if the user is the owner of this image
+:return: The transformed image with the given id
+
+    """
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
@@ -127,13 +137,18 @@ async def get_qrcode_transformed_image_by_id(transformed_id: int, db: Session, c
 
 async def get_url_transformed_image_by_id(transformed_id: int, db: Session, current_user):
     """
-     Функція get_url_transformed_image_by_id приймає transformed_id і db,
-     і повертає URL-адресу перетвореного зображення з цим ідентифікатором.
-     :param transformed_id: int: отримати трансформоване зображення за ідентифікатором
-     :param db: Сеанс: доступ до бази даних
-     :param current_user: Перевірте, чи має користувач доступ до зображення
-     :return: URL-адреса трансформованого зображення
-     """
+The get_url_transformed_image_by_id function returns the transformed image url by id.
+    Args:
+        transformed_id (int): The id of the transformed image to be returned.
+        db (Session): The database session object used for querying and updating data in the database.
+            This is injected into this function by FastAPI when it calls this function, so you don't need to pass it in yourself!
+
+:param transformed_id: int: Find the transformed image in the database
+:param db: Session: Access the database
+:param current_user: Get the user id of the current user
+:return: The transformed image object with the given id
+
+    """
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
