@@ -17,16 +17,19 @@ security = HTTPBearer()
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
     """
-     Функція реєстрації створює нового користувача в базі даних.
-         Він приймає об’єкт UserModel як вхідні дані, які перевіряються pydantic.
-         Пароль хешується і зберігається в базі даних.
-         На електронну адресу користувача надсилається лист із посиланням для активації.
-     :param body: UserModel: передати дані з тіла запиту до нашої функції
-     :param background_tasks: Фонові завдання: Додати завдання до фонової черги
-     :param запит: Запит: отримати базову URL-адресу програми
-     :param db: Сеанс: отримати сеанс бази даних
-     :return: Об’єкт користувача
-     """
+The signup function creates a new user in the database.
+    It takes a UserModel object as input, which contains the following fields:
+        - username (str)
+        - email (str)
+        - password (str)
+
+:param body: UserModel: Get the data from the request body
+:param background_tasks: BackgroundTasks: Add a task to the background tasks queue
+:param request: Request: Get the base url of the server
+:param db: Session: Get the database session
+:return: A usermodel object
+
+    """
     exist_user = await repository_users.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=AuthMessages.account_already_exists)
@@ -39,13 +42,15 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
 @router.post("/login", response_model=TokenModel)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
-     Функція входу використовується для автентифікації користувача.
-         Він бере ім’я користувача та пароль із тіла запиту,
-         перевіряє їх правильність і повертає маркер доступу.
-     :param body: OAuth2PasswordRequestForm: отримати ім’я користувача та пароль із тіла запиту
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Відповідь json із маркером доступу та маркером оновлення
-     """
+The login function is used to authenticate a user.
+    It takes the username and password from the request body,
+    verifies them against the database, and returns an access token if successful.
+
+:param body: OAuth2PasswordRequestForm: Get the username and password from the request body
+:param db: Session: Get access to the database
+:return: A jwt token and a refresh_token
+
+    """
     user = await repository_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=AuthMessages.invalid_email)
@@ -65,13 +70,15 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
 @router.get('/refresh_token', response_model=TokenModel)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     """
-     Функція refresh_token використовується для оновлення маркера доступу.
-         Функція приймає маркер оновлення та повертає access_token, новий refresh_token і тип маркера.
-         Якщо поточний refresh_token користувача не відповідає тому, що було передано в цю функцію, вона поверне помилку.
-     :param credentials: HTTPAuthorizationCredentials: отримати маркер із заголовка запиту
-     :param db: Сеанс: передає сеанс бази даних функції
-     :return: Словник із access_token, refresh_token і типом маркера
-     """
+The refresh_token function is used to refresh the access token.
+    The function takes in a refresh token and returns an access_token, a new refresh_token, and the type of token.
+    If the user's account has been banned or if they have logged out then this function will not work.
+
+:param credentials: HTTPAuthorizationCredentials: Get the token from the request header
+:param db: Session: Pass the database session to the function
+:return: A json object with the access_token, refresh_token and token_type
+
+    """
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repository_users.get_user_by_email(email, db)
@@ -90,16 +97,18 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
 @router.get('/confirmed_email/{token}')
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
     """
-     Функція confirmed_email використовується для підтвердження електронної адреси користувача.
-     Він бере маркер із URL-адреси та використовує його для отримання електронної адреси користувача.
-     Потім функція перевіряє, чи є користувач із такою електронною поштою в нашій базі даних, і якщо ні, повертає повідомлення про помилку.
-     Якщо в нашій базі даних є користувач із такою електронною адресою, ми перевіряємо, чи його обліковий запис уже підтверджено.
-     Якщо це вже підтверджено, ми повертаємо інше повідомлення про помилку з таким повідомленням; інакше ми називаємо repository_users
-     функція confirmed_email, яка встановлює значення для поля «підтверджено» цього конкретного запису
-     :param token: str: Отримати маркер з URL-адреси
-     :param db: Сеанс: доступ до бази даних
-     :return: Повідомлення про те, що електронна адреса вже підтверджена, або повідомлення про те, що її підтверджено
-     """
+The confirmed_email function is used to confirm a user's email address.
+    It takes in the token that was sent to the user's email and uses it to get their email address.
+    Then, it gets the user from our database using their email address and checks if they exist.
+    If they don't exist, we return an error message saying that there was an error verifying their account.
+    If they do exist, we check if their account has already been confirmed or not by checking if confirmed is True or False for them in our database (True means verified).
+    If it has already been verified, then
+
+:param token: str: Get the token from the url
+:param db: Session: Get the database connection
+:return: A message if the email is already confirmed
+
+"""
     email = await auth_service.get_email_from_token(token)
     user = await repository_users.get_user_by_email(email, db)
     if user is None:
@@ -114,17 +123,19 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
 async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, request: Request,
                         db: Session = Depends(get_db)):
     """
-     Функція request_email використовується для надсилання електронного листа користувачеві з посиланням, яке дозволить йому
-     щоб підтвердити свій обліковий запис. Функція приймає об’єкт RequestEmail, який містить електронну пошту
-     користувач, який хоче підтвердити свій обліковий запис. Потім він перевіряє, чи вже є підтверджений користувач
-     цю адресу електронної пошти, і якщо так, повертає повідомлення про помилку про те, що вони вже підтверджені. Якщо ні, надсилає
-     електронний лист із посиланням для підтвердження.
-     :param body: RequestEmail: отримати електронний лист із тіла запиту
-     :param background_tasks: BackgroundTasks: Додати завдання до черги фонових завдань
-     :param запит: Запит: отримати базову URL-адресу сервера
-     :param db: Сеанс: отримати сеанс бази даних
-     :return: Повідомлення для користувача
-     """
+The request_email function is used to send an email to the user with a link that will allow them
+to confirm their email address. The function takes in a RequestEmail object, which contains the
+email of the user who wants to confirm their account. It then checks if there is already a confirmed
+user with that email address, and if so returns an error message saying as much. If not, it sends
+an email containing a confirmation link.
+
+:param body: RequestEmail: Pass the email address to be confirmed
+:param background_tasks: BackgroundTasks: Add a task to the background tasks queue
+:param request: Request: Get the base_url of the application
+:param db: Session: Access the database
+:return: A message to the user
+
+    """
     user = await repository_users.get_user_by_email(body.email, db)
 
     if user.confirmed:
