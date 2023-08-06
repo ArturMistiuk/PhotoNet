@@ -8,13 +8,15 @@ from src.repository.users import get_user_by_email, update_token, confirmed_emai
 @pytest.mark.asyncio
 async def test_get_user_by_email(session: Session):
     """
-     Функція test_get_user_by_email перевіряє функцію get_user_by_email у файлі users.py.
-     Він створює користувача з електронною адресою, додає його до бази даних, а потім викликає get_user_by_email
-     з тією самою електронною адресою як аргумент. Він стверджує, що цей виклик повертає об’єкт User і
-     що його атрибут email дорівнює тому, що було передано в get user by email.
-     :param session: Сеанс: Передайте сеанс бази даних до функції
-     :return: Об’єкт користувача з адресою електронної пошти, яку було передано
-     """
+The test_get_user_by_email function tests the get_user_by_email function in the users.py file.
+It creates a user with an email address, adds it to the database, and then calls get_user_by_email
+with that email address as an argument. It asserts that this call returns a User object with
+the same email address.
+
+:param session: Session: Pass in a sqlalchemy session object, which is used to query the database
+:return: A user object
+:doc-author: Trelent
+    """
     email = "test@example.com"
     user = User(username="testuser", email=email, password="password")
     session.add(user)
@@ -29,12 +31,15 @@ async def test_get_user_by_email(session: Session):
 @pytest.mark.asyncio
 async def test_update_token(session: Session):
     """
-     Функція test_update_token перевіряє функцію update_token.
-     Це робиться шляхом створення користувача, додавання його до бази даних, а потім виклику update_token з цим користувачем.
-     Тест пройдено, якщо маркер оновлення цього користувача дорівнює &quot;new_token&quot;.
-     :param session: Сеанс: Передайте сеанс бази даних до функції
-     :return: Жодного
-     """
+The test_update_token function tests the update_token function.
+It creates a user, adds it to the database, and commits it.
+Then it calls update_token with that user and a token string.
+Finally, we refresh our session so that we can check if the token was updated.
+
+:param session: Session: Pass in the database session to the function
+:return: A coroutine, which is a special type of object that can be used with asyncio
+:doc-author: Trelent
+    """
     user = User(username="testuser", email="test@example.com", password="password")
     session.add(user)
     session.commit()
@@ -49,13 +54,15 @@ async def test_update_token(session: Session):
 @pytest.mark.asyncio
 async def test_confirmed_email(session: Session):
     """
-     Функція test_confirmed_email перевіряє функцію confirmed_email.
-     Він створює користувача з адресою електронної пошти та встановлює для поля підтвердження значення False.
-     Потім він викликає функцію confirmed_email, передаючи цю адресу електронної пошти та об’єкт сеансу.
-     Нарешті, він перевіряє, чи підтверджене поле користувача тепер має значення True.
-     :param session: Сеанс: передати функцію сеанс бази даних
-     :return: Логічне значення, яке є істинним, якщо електронну адресу користувача було підтверджено
-     """
+The test_confirmed_email function tests the confirmed_email function.
+    It creates a user with an email address and confirms that the user's email is not confirmed.
+    Then it calls the confirmed_email function to confirm that user's email address, and then checks again to make sure
+    that their email has been successfully marked as &quot;confirmed&quot;.
+
+:param session: Session: Pass in the database session
+:return: A boolean value
+:doc-author: Trelent
+    """
     email = "test@example.com"
     user = User(username="testuser", email=email, password="password", confirmed=False)
     session.add(user)
@@ -70,12 +77,14 @@ async def test_confirmed_email(session: Session):
 @pytest.mark.asyncio
 async def test_get_user_info(session: Session):
     """
-     Функція test_get_user_info перевіряє функцію get_user_info.
-     Це робиться шляхом створення користувача в базі даних, а потім виклику get_user_info з цим іменем користувача.
-     Перевірку проходить, якщо він повертає об’єкт User з тим самим іменем користувача та електронною адресою, що й створений.
-     :param session: Сеанс: Перейти до сеансу бази даних
-     :return: Об’єкт, що містить інформацію про користувача
-     """
+The test_get_user_info function tests the get_user_info function.
+It does this by creating a user in the database, then calling get_user_info with that username.
+The test passes if the returned UserInfo object has all of its fields set to what we expect.
+
+:param session: Session: Pass in a database session to the function
+:return: A user object
+:doc-author: Trelent
+    """
     username = "testuser"
     user = User(username=username, email="test@example.com", password="password")
     session.add(user)
@@ -91,12 +100,13 @@ async def test_get_user_info(session: Session):
 @pytest.mark.asyncio
 async def test_update_user_info(session: Session):
     """
-     Функція test_update_user_info перевіряє функцію update_user_info.
-         Аргументи:
-             сеанс (Сеанс): сеанс бази даних для використання для цього тесту.
-     :param session: Сеанс: Створіть сеанс бази даних для тесту
-     :return: Оновлений користувач
-     """
+The test_update_user_info function tests the update_user_info function.
+It does so by creating a user, updating that user's information, and then asserting that the updated information is correct.
+
+:param session: Session: Pass the database session to the function
+:return: None
+:doc-author: Trelent
+    """
     username = "testuser"
     user = User(username=username, email="test@example.com", password="password")
     session.add(user)
