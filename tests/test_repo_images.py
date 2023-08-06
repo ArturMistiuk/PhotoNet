@@ -14,9 +14,9 @@ from src.services.images import images_service_normalize_tags
 
 class TestImagesService(unittest.TestCase):
     def setUp(self):
-        # Створіть макет сеансу бази даних для тестування
+        # Create a database session mock for testing
         self.db = MagicMock(spec=Session)
-        self.user = User(id=1, role=Role.user)  # Створіть макет користувача
+        self.user = User(id=1, role=Role.user)  # Create a user mock
         self.image = MagicMock()
         self.tags = ['tag1', 'tag2']
         self.db_tag = MagicMock()
@@ -27,13 +27,13 @@ class TestImagesService(unittest.TestCase):
         self.body = MagicMock()
 
     async def test_get_images(self):
-        # Імітація поведінки функції get_average_rating
+        # Simulate the behavior of the get_average_rating function
         get_average_rating = MagicMock()
         get_average_rating.return_value = 4.5
         get_average_rating.attach_mock(
             MagicMock(return_value=[Comment(id=1, user_id=1, image_id=1, text='Nice image')]), 'return_value')
 
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.order_by.return_value.all.return_value = [
             Image(id=1, description='Test Image 1', user_id=1),
             Image(id=2, description='Test Image 2', user_id=2)
@@ -51,13 +51,13 @@ class TestImagesService(unittest.TestCase):
         self.assertEqual(result, expected_response)
 
     async def test_get_image(self):
-        # Імітація поведінки функції get_average_rating
+        # Imitation of the behavior of the get_average_rating function
         get_average_rating = MagicMock()
         get_average_rating.return_value = 4.2
         get_average_rating.attach_mock(
             MagicMock(return_value=[Comment(id=1, user_id=1, image_id=1, text='Nice image')]), 'return_value')
 
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.filter.return_value.first.return_value = Image(id=1, description='Test Image 1',
                                                                                   user_id=1)
 
@@ -71,13 +71,13 @@ class TestImagesService(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     async def test_admin_get_image(self):
-        # Імітація поведінки функції get_average_rating
+        # Imitation of the behavior of the get_average_rating function
         get_average_rating = MagicMock()
         get_average_rating.return_value = 3.8
         get_average_rating.attach_mock(
             MagicMock(return_value=[Comment(id=2, user_id=1, image_id=2, text='Great picture')]), 'return_value')
 
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
             Image(id=1, description='Test Image 1', user_id=2),
             Image(id=2, description='Test Image 2', user_id=2)
@@ -95,10 +95,10 @@ class TestImagesService(unittest.TestCase):
         self.assertEqual(result, expected_response)
 
     async def test_add_image(self):
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.filter.return_value.first.return_value = User(id=1)
 
-        # Імітація методів додавання, фіксації та оновлення сеансу бази даних
+        # Imitation of database session add, commit, and update methods
         self.db.add.return_value = None
         self.db.commit.return_value = None
         self.db.refresh.return_value = None
@@ -164,11 +164,11 @@ class TestImagesService(unittest.TestCase):
         self.assertIsNone(result)
 
     async def test_update_image(self):
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.filter.return_value.first.return_value = Image(id=1, description='Old Description',
                                                                                   user_id=1)
 
-        # Імітація методів фіксації та оновлення сеансу бази даних
+        # Imitation of database session commit and update methods
         self.db.commit.return_value = None
         self.db.refresh.return_value = None
 
@@ -235,10 +235,10 @@ class TestImagesService(unittest.TestCase):
         normalize_tags_mock.assert_called_once_with(self.body)
 
     async def test_delete_image(self):
-        # Імітація методу запиту сеансу бази даних
+        # Imitation of a database session query method
         self.db.query.return_value.filter.return_value.first.return_value = Image(id=1, user_id=1)
 
-        # Імітація методів видалення, фіксації сеансу бази даних
+        # Imitation of database session delete and commit methods
         self.db.delete.return_value = None
         self.db.commit.return_value = None
 
