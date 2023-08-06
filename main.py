@@ -9,15 +9,15 @@ from src.database.models import User, Image, Tag, Comment, TransformedImage, Rat
 from src.routes import transformed_images, auth, tags, comments_routes, images, ratings, users, search
 
 
-# Стоврюємо екземпляр FastApi, встановлюємо назву додатка в swagger та відсоруємо роути по методам:
+# Create an instance of FastAPI, set the application name in Swagger, and sort routes by methods
 app = FastAPI(swagger_ui_parameters={"operationsSorter": "method"}, title='PhotoNet app')
 
 
-# створюємо адмінку
+# Create an admin interface
 admin = Admin(app, engine)
 
 
-# визначаємо зміст адмінки: якими моделями бази даних і якими полями хочемо керувати через адмінку:
+# Define the content of the admin interface: specify the database models and fields we want to manage through the admin interface
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.username, User.email]
     column_searchable_list = [User.username]
