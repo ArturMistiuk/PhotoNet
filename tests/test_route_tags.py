@@ -121,7 +121,6 @@ def test_delete_tag(client, token):
         assert data["name"] == "new_test_tag"
 
 
-
 def test_repeat_delete_tag(client, token):
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
