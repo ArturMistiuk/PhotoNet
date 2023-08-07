@@ -12,6 +12,7 @@ class TestCreateQRCode(unittest.TestCase):
         qr_image = generate_and_upload_qr_code(image_url)
         mock_show.assert_called_once()
 
+
 class TestCreateTransformations(unittest.TestCase):
     def test_create_transformations(self):
         body = TransformedImageModel(
