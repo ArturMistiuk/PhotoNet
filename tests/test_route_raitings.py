@@ -22,6 +22,7 @@ UPDATED_RATING = {
             "four_stars": False,
             "five_stars": False}
 
+
 @pytest.fixture()
 def token(client, user, session, monkeypatch):
     mock_send_email = MagicMock()
@@ -37,6 +38,7 @@ def token(client, user, session, monkeypatch):
     data = response.json()
     return data["access_token"]
 
+
 def test_create_rating_success(client, token):
     fake_image = Image(url="test_url", description="test_description", public_name="test_name", user_id=2, created_at=datetime(year=2012, month=12, day=12), updated_at=datetime(year=2012, month=12, day=12))
     with patch("src.repository.ratings.get_image", return_value=fake_image):
@@ -45,6 +47,7 @@ def test_create_rating_success(client, token):
         rating = response.json()
         assert rating["one_star"] == RATING["one_star"]
 
+
 def test_create_rating_for_own_image(client, token):
     fake_image = Image(url="test_url", description="test_description", public_name="test_name", user_id=1, created_at=datetime(year=2012, month=12, day=12), updated_at=datetime(year=2012, month=12, day=12))
     with patch("src.repository.ratings.get_image", return_value=fake_image):
@@ -52,7 +55,6 @@ def test_create_rating_for_own_image(client, token):
         assert response.status_code == 400
         data = response.json()
         assert data["detail"] == "Please, check the image_id. You can't rate your images or give 2 or more rates for 1 image"
-
 
 
 def test_get_ratings(client, token):
