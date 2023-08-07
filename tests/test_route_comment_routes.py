@@ -154,7 +154,6 @@ def test_delete_comment(client, token, monkeypatch):
         assert data["comment"] == UPDATED_COMMENT["comment"]
 
 
-
 def test_repeat_delete_comment(client, token, monkeypatch):
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
