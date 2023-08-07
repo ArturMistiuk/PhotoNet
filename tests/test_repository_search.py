@@ -9,19 +9,19 @@ from src.repository.search import calc_average_rating
 
 class CalcAverageRatingTestCase(unittest.TestCase):
     def setUp(self):
-        # Створіть базу даних SQLite в пам’яті для тестування
+        # Create SQLite for testing
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
         Session = sessionmaker(bind=engine)
         self.db = Session()
 
     def tearDown(self):
-        # Закрийте сеанс бази даних і видаліть усі таблиці
+        # Close db session and delete all tables
         self.db.close_all()
         Base.metadata.drop_all(bind=self.db.bind)
 
     def test_average_rating_no_ratings(self):
-        # Тестовий приклад для зображення без оцінок
+        # Test example without ratings
         image_id = 1
 
         average_rating = calc_average_rating(image_id, self.db)
@@ -29,7 +29,7 @@ class CalcAverageRatingTestCase(unittest.TestCase):
         self.assertEqual(average_rating, 0)
 
     def test_average_rating_single_rating(self):
-        # Тест для зображення з одним рейтингом
+        # Test example with one rating
         image_id = 1
         rating = Rating(image_id=image_id, one_star=False, two_stars=False,
                         three_stars=False, four_stars=False, five_stars=True)
@@ -41,7 +41,7 @@ class CalcAverageRatingTestCase(unittest.TestCase):
         self.assertEqual(average_rating, 5)
 
     def test_average_rating_multiple_ratings(self):
-        # Тестовий приклад для зображення з кількома оцінками
+        # Test example with several ratings
         image_id = 1
         ratings = [
             Rating(image_id=image_id, one_star=False, two_stars=True,
@@ -59,7 +59,7 @@ class CalcAverageRatingTestCase(unittest.TestCase):
         self.assertAlmostEqual(average_rating, 3.6666666666666665, places=6)
 
     def test_average_rating_duplicate_stars(self):
-        # Тестовий приклад для зображення з кількома оцінками та дублікатами зірок
+        # Test example for an image with multiple ratings and duplicate stars
         image_id = 1
         ratings = [
             Rating(image_id=image_id, one_star=False, two_stars=False,
@@ -81,7 +81,7 @@ class CalcAverageRatingTestCase(unittest.TestCase):
         self.assertAlmostEqual(average_rating, 3.8, places=6)
 
     def test_average_rating_nonexistent_image(self):
-        # Тестовий приклад для неіснуючого зображення
+        # Test example for a non-existing image
         image_id = 999
 
         average_rating = calc_average_rating(image_id, self.db)
@@ -102,24 +102,24 @@ from src.repository.search import get_img_by_user_id
 
 class GetImageByUserIdTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        # Створіть базу даних SQLite в пам’яті для тестування
+        # Create an SQLite in-memory database for testing
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
         Session = sessionmaker(bind=engine)
         self.db = Session()
 
     async def asyncTearDown(self):
-        # Закрийте сеанс бази даних і видаліть усі таблиці
+        # Close the database session and delete all tables
         self.db.close_all()
         Base.metadata.drop_all(bind=self.db.bind)
 
     async def test_get_img_by_user_id_sort_by_date_descending(self):
-        # Тест для сортування зображень за датою в порядку спадання
+        # Test for sorting images by date in descending order
         user_id = 1
         skip = 0
         limit = 10
         filter_type = "d"
-        user = User(role=Role.admin)  # Користувач із роллю адміністратора
+        user = User(role=Role.admin)  # User with an administrator role
 
         try:
             await get_img_by_user_id(user_id, skip, limit, filter_type, self.db, user)
@@ -129,12 +129,12 @@ class GetImageByUserIdTestCase(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skip
     async def test_get_img_by_user_id_sort_by_date_ascending(self):
-        # Тест для сортування зображень за датою в порядку зростання
+        # Test for sorting images by date in ascending order
         user_id = 1
         skip = 0
         limit = 10
         filter_type = "-d"
-        user = User(role=Role.moderator)  # Користувач із роллю модератора
+        user = User(role=Role.moderator)  # User with a moderator role
 
         # TODO: Add test data to the database for the given scenario
 
@@ -143,12 +143,12 @@ class GetImageByUserIdTestCase(unittest.IsolatedAsyncioTestCase):
         # TODO: Add assertions to verify the correctness of the results
 
     async def test_get_img_by_user_id_unauthorized_user(self):
-        # Тестовий приклад для неавторизованого користувача
+        # Test example for an unauthorized user
         user_id = 1
         skip = 0
         limit = 10
         filter_type = "d"
-        user = User(role=Role.user)  # Користувач із роллю користувача (без доступу)
+        user = User(role=Role.user)  # User with a regular user role (no access)
 
         with self.assertRaises(HTTPException) as cm:
             await get_img_by_user_id(user_id, skip, limit, filter_type, self.db, user)
@@ -157,6 +157,5 @@ class GetImageByUserIdTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(cm.exception.detail, "Only admin or moderator can get this data")
 
 
-# Інші тестові випадки...
 if __name__ == '__main__':
     unittest.main()
