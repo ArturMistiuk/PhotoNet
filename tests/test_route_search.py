@@ -45,7 +45,7 @@ class TestSearchRoutes(unittest.IsolatedAsyncioTestCase):
         current_user = User(id=1, role="admin")
 
         with self.assertRaises(HTTPException) as context:
-            if current_user.role != "admin":  # Перевірка ролі користувача
+            if current_user.role != "admin":  # Check user's role
                 raise HTTPException(status_code=403, detail="Only admin and moderator can get this data")
             await get_img_by_user_id(user_id, 0, 10, 'd', db, current_user)
         self.assertEqual(context.exception.status_code, 403)
