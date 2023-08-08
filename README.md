@@ -1,6 +1,6 @@
 # PhotoNet
 
-<h3><a href="https://photonet.fly.dev/docs#/" style="font-size:30 px">Visit PhotoNet Docs</a></h3>
+<h3><a href="https://photonet23.fly.dev/docs#/" style="font-size:30 px">Visit PhotoNet Docs</a></h3>
 
 <h3>So this is an API for Photo Sharing and here you can:</h3>
 <ul>
