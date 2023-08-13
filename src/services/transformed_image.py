@@ -1,6 +1,7 @@
 import qrcode
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
 import tempfile
 import os
 from src.schemas.transformed_image_schemas import TransformedImageModel
