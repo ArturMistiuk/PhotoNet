@@ -16,8 +16,8 @@ from src.repository import users as repository_users
 
 class Auth:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    SECRET_KEY = settings.jwt_secret_key
-    ALGORITHM = settings.jwt_algorithm
+    SECRET_KEY = settings.JWT_SECRET_KEY
+    ALGORITHM = settings.JWT_ALGORITHM
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
     def verify_password(self, plain_password, hashed_password):
