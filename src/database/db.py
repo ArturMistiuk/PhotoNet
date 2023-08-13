@@ -6,7 +6,7 @@ from sqlalchemy.exc import DatabaseError
 
 from src.conf.config import settings
 
-SQLALCHEMY_DATABASE_URL = settings.sqlalchemy_database_url
+SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URL
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True, max_overflow=5)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
