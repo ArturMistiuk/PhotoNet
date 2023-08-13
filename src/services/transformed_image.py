@@ -37,9 +37,9 @@ The generate_and_upload_qr_code function generates a QR code image from the give
 
     # Upload QR-code on Cloudinary
     cloudinary.config(
-        cloud_name=settings.cloudinary_name,
-        api_key=settings.cloudinary_api_key,
-        api_secret=settings.cloudinary_api_secret,
+        cloud_name=settings.CLOUDINARY_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
         secure=True
     )
     result = cloudinary.uploader.upload(temp_file_path)
