@@ -3,19 +3,19 @@ from pydantic import EmailStr
 
 
 class Settings(BaseSettings):
-    sqlalchemy_database_url: str
-    jwt_secret_key: str
-    jwt_algorithm: str
-    mail_username: str
-    mail_password: str
-    mail_from: str
-    mail_port: int
-    mail_server: str
-    redis_host: str
-    redis_port: int
-    cloudinary_name: str
-    cloudinary_api_key: str
-    cloudinary_api_secret: str
+    SQLALCHEMY_DATABASE_URL: str
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    REDIS_HOST: str
+    REDIS_PORT: int
+    CLOUDINARY_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
     DB_USER: str
     DB_PASSWORD: str
     DB_DOMAIN: str
