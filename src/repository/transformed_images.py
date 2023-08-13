@@ -7,6 +7,15 @@ from src.database.models import TransformedImage, Image, User, Role
 from src.database.db import get_db
 from src.schemas.transformed_image_schemas import TransformedImageModel
 from src.services.transformed_image import create_transformations, generate_and_upload_qr_code
+from src.conf.config import settings
+
+
+cloudinary.config(
+        cloud_name=settings.CLOUDINARY_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+        secure=True
+    )
 
 
 async def create_transformed_picture(body: TransformedImageModel,
